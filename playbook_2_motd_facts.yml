@@ -1,0 +1,15 @@
+---
+- name: Configure motd with host facts
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Set motd from facts
+      ansible.builtin.copy:
+        dest: /etc/motd
+        mode: '0644'
+        content: |
+          Hostname: {{ ansible_hostname }}
+          IP address: {{ ansible_default_ipv4.address }}
+          Good day, system administrator!

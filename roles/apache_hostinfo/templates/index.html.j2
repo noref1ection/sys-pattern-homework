@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Host info</title>
+</head>
+<body>
+    <h1>Managed host information</h1>
+    <ul>
+        <li>Hostname: {{ ansible_hostname }}</li>
+        <li>IP address: {{ ansible_default_ipv4.address }}</li>
+        <li>CPU: {{ ansible_processor_vcpus | default(ansible_processor_nproc) }}</li>
+        <li>RAM: {{ ansible_memtotal_mb }} MB</li>
+        <li>First HDD: {{ (ansible_mounts | sort(attribute='mount'))[0].size_total // 1024 // 1024 // 1024 }} GB</li>
+    </ul>
+</body>
+</html>

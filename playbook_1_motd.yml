@@ -1,0 +1,14 @@
+---
+- name: Configure motd
+  hosts: all
+  become: true
+
+  vars:
+    custom_motd: "Welcome to managed host by Ansible"
+
+  tasks:
+    - name: Set motd
+      ansible.builtin.copy:
+        dest: /etc/motd
+        content: "{{ custom_motd }}\n"
+        mode: '0644'

@@ -1,0 +1,31 @@
+---
+- name: Install Apache
+  ansible.builtin.package:
+    name: "{{ apache_package }}"
+    state: present
+
+- name: Ensure Apache is started and enabled
+  ansible.builtin.service:
+    name: "{{ apache_service }}"
+    state: started
+    enabled: true
+
+- name: Open port 80 in firewalld
+  ansible.posix.firewalld:
+    port: 80/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_facts.os_family == "RedHat"
+
+- name: Deploy index.html
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ apache_docroot }}/index.html"
+    mode: '0644'
+  notify: Restart Apache
+
+- name: Check website availability
+  ansible.builtin.uri:
+    url: "http://127.0.0.1"
+    status_code: 200

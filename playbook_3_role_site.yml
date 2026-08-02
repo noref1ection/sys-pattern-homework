@@ -1,0 +1,8 @@
+---
+- name: Deploy Apache with host info page
+  hosts: all
+  become: true
+  gather_facts: true
+
+  roles:
+    - apache_hostinfo

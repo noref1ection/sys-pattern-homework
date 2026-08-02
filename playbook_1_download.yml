@@ -1,0 +1,28 @@
+---
+- name: Download and extract archive
+  hosts: all
+  become: true
+
+  vars:
+    kafka_url: "https://downloads.apache.org/kafka/3.9.1/kafka_2.13-3.9.1.tgz"
+    kafka_archive: "/tmp/kafka.tgz"
+    kafka_install_dir: "/opt/kafka"
+
+  tasks:
+    - name: Create destination directory
+      ansible.builtin.file:
+        path: "{{ kafka_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Download archive
+      ansible.builtin.get_url:
+        url: "{{ kafka_url }}"
+        dest: "{{ kafka_archive }}"
+        mode: '0644'
+
+    - name: Extract archive
+      ansible.builtin.unarchive:
+        src: "{{ kafka_archive }}"
+        dest: "{{ kafka_install_dir }}"
+        remote_src: true
