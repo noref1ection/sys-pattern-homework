@@ -1,375 +1,368 @@
-# Практическое задание с самопроверкой «Ansible. Часть 2» - Панин Евгений Викторович
+# Домашнее задание к занятию «Отказоустойчивость в облаке»
 
-### Инструкция по выполнению домашнего задания
+## Панин Евгений Викторович
 
-1. Сделайте `fork` данного репозитория к себе в Github и переименуйте его по названию или номеру занятия, например, https://github.com/имя-вашего-репозитория/git-hw или https://github.com/имя-вашего-репозитория/7-1-ansible-hw).
+## Цель задания
+
+В результате выполнения этого задания вы научитесь:
+
+- Конфигурировать отказоустойчивый кластер в облаке с использованием различных функций отказоустойчивости.
+- Устанавливать сервисы из конфигурации инфраструктуры.
+
+## Чеклист готовности к домашнему заданию
+
+- Создан аккаунт на Yandex Cloud.
+- Создан новый OAuth-токен.
+- Установлено программное обеспечение Terraform.
+
+## Инструкция по выполнению домашнего задания
+
+1. Сделайте fork [репозитория с шаблоном решения](https://github.com/netology-code/sys-pattern-homework) к себе в GitHub и переименуйте его по названию или номеру занятия, например:
+   - `https://github.com/имя-вашего-репозитория/gitlab-hw`;
+   - `https://github.com/имя-вашего-репозитория/8-03-hw`.
 2. Выполните клонирование данного репозитория к себе на ПК с помощью команды `git clone`.
-3. Выполните домашнее задание и заполните у себя локально этот файл README.md:
-   - впишите вверху название занятия и вашу фамилию и имя
-   - в каждом задании добавьте решение в требуемом виде (текст/код/скриншоты/ссылка)
-   - для корректного добавления скриншотов воспользуйтесь [инструкцией "Как вставить скриншот в шаблон с решением"](https://github.com/netology-code/sys-pattern-homework/blob/main/screen-instruction.md)
-   - при оформлении используйте возможности языка разметки md
-4. После завершения работы над домашним заданием сделайте коммит (`git commit -m "comment"`) и отправьте его на Github (`git push origin`);
-5. В личном кабинете прикрепите и отправьте ссылку на решение в виде md-файла в вашем Github.
-6. Любые вопросы по выполнению заданий спрашивайте в разделе “Вопросы по заданию” в личном кабинете.
+3. Выполните домашнее задание и заполните у себя локально файл `README.md`:
+   - впишите вверху название занятия и вашу фамилию и имя;
+   - в каждом задании добавьте решение в требуемом виде: текст, код, скриншоты или ссылки;
+   - для корректного добавления скриншотов воспользуйтесь инструкцией [«Как вставить скриншот в шаблон с решением»](https://github.com/netology-code/sys-pattern-homework/blob/main/screen-instruction.md);
+   - при оформлении используйте возможности языка разметки Markdown: [инструкция по Markdown](https://github.com/netology-code/sys-pattern-homework/blob/main/md-instruction.md).
+4. После завершения работы над домашним заданием сделайте коммит (`git commit -m "comment"`) и отправьте его на GitHub (`git push origin`).
+5. Для проверки домашнего задания преподавателем в личном кабинете прикрепите и отправьте ссылку на решение в виде Markdown-файла в вашем GitHub.
+6. Любые вопросы по выполнению заданий спрашивайте в разделе «Вопросы по заданию» в личном кабинете.
 
-Желаю успехов в выполнении домашнего задания!
+## Инструменты и дополнительные материалы
 
-### Дополнительные материалы, которые могут быть полезны для выполнения задания
-
-1. [Руководство по оформлению Markdown файлов](https://gist.github.com/Jekins/2bf2d0638163f1294637#Code)
+- [Документация сетевого балансировщика нагрузки](https://cloud.yandex.ru/docs/network-load-balancer/quickstart).
 
 ---
 
-### Задание 1
+## Задание 1
 
-Были подготовлены три отдельных playbook:
-1. Скачивание архива, создание каталога и распаковка.
-2. Установка и запуск сервиса tuned с добавлением в автозагрузку.
-3. Изменение приветствия системы через переменную.
+Возьмите за основу [решение к заданию 1 из занятия «Подъём инфраструктуры в Яндекс Облаке»](https://github.com/netology-code/sdvps-homeworks/blob/main/7-03.md#задание-1).
 
-#### Playbook 1. Скачивание и распаковка архива
+Теперь вместо одной виртуальной машины сделайте Terraform playbook, который:
 
-```yaml
-***
-- name: Download and extract archive
-  hosts: all
-  become: true
+1. Создаст 2 идентичные виртуальные машины. Используйте аргумент [count](https://www.terraform.io/docs/language/meta-arguments/count.html) для создания таких ресурсов.
+2. Создаст [таргет-группу](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/lb_target_group). Поместите в неё созданные на шаге 1 виртуальные машины.
+3. Создаст [сетевой балансировщик нагрузки](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/lb_network_load_balancer), который слушает на порту 80, отправляет трафик на порт 80 виртуальных машин и выполняет HTTP healthcheck на порту 80 виртуальных машин.
 
-  vars:
-    kafka_url: "https://downloads.apache.org/kafka/3.9.1/kafka_2.13-3.9.1.tgz"
-    kafka_archive: "/tmp/kafka.tgz"
-    kafka_install_dir: "/opt/kafka"
+Рекомендуем изучить [документацию сетевого балансировщика нагрузки](https://cloud.yandex.ru/docs/network-load-balancer/quickstart), чтобы было понятно, что вы сделали.
 
-  tasks:
-    - name: Create destination directory
-      ansible.builtin.file:
-        path: "{{ kafka_install_dir }}"
-        state: directory
-        mode: '0755'
+Установите на созданные виртуальные машины пакет Nginx любым удобным способом и запустите Nginx веб-сервер на порту 80.
 
-    - name: Download archive
-      ansible.builtin.get_url:
-        url: "{{ kafka_url }}"
-        dest: "{{ kafka_archive }}"
-        mode: '0644'
+Перейдите в веб-консоль Yandex Cloud и убедитесь, что:
 
-    - name: Extract archive
-      ansible.builtin.unarchive:
-        src: "{{ kafka_archive }}"
-        dest: "{{ kafka_install_dir }}"
-        remote_src: true
-```
+- созданный балансировщик находится в статусе `Active`;
+- обе виртуальные машины в целевой группе находятся в состоянии `healthy`.
 
-#### Playbook 2. Установка и запуск tuned
+Сделайте запрос на порт 80 внешнего IP-адреса балансировщика и убедитесь, что получаете ответ в виде стандартной страницы Nginx.
 
-```yaml
-***
-- name: Install and enable tuned
-  hosts: all
-  become: true
+В качестве результата пришлите:
 
-  tasks:
-    - name: Install tuned
-      ansible.builtin.package:
-        name: tuned
-        state: present
+1. Terraform Playbook.
+2. Скриншот статуса балансировщика и целевой группы.
+3. Скриншот страницы, которая открылась при запросе IP-адреса балансировщика.
 
-    - name: Enable and start tuned
-      ansible.builtin.service:
-        name: tuned
-        state: started
-        enabled: true
-```
+## Задания со звёздочкой*
 
-#### Playbook 3. Изменение motd через переменную
+Эти задания дополнительные. Выполнять их не обязательно. На зачёт это не повлияет. Вы можете их выполнить, если хотите глубже разобраться в материале.
 
-```yaml
-***
-- name: Configure motd
-  hosts: all
-  become: true
+### Задание 2*
 
-  vars:
-    custom_motd: "Welcome to managed host by Ansible"
+Теперь вместо создания виртуальных машин создайте [группу виртуальных машин с балансировщиком нагрузки](https://cloud.yandex.ru/docs/compute/operations/instance-groups/create-with-balancer).
 
-  tasks:
-    - name: Set motd
-      ansible.builtin.copy:
-        dest: /etc/motd
-        content: "{{ custom_motd }}\n"
-        mode: '0644'
-```
+Nginx нужно поставить автоматизированно. Для этого необходимо подложить файл установки Nginx в ключ `user-data` [метаданных](https://cloud.yandex.ru/docs/compute/concepts/vm-metadata) виртуальной машины.
 
-#### Команды запуска
+- [Пример файла установки Nginx](https://github.com/nar3k/yc-public-tasks/blob/master/terraform/metadata.yaml).
+- [Как подставлять файл в метаданные виртуальной машины](https://github.com/nar3k/yc-public-tasks/blob/a6c50a5e1d82f27e6d7f3897972adb872299f14a/terraform/main.tf#L38).
 
-```bash
-ansible-playbook -i inventory/hosts.ini playbook_1_download.yml
-ansible-playbook -i inventory/hosts.ini playbook_1_tuned.yml
-ansible-playbook -i inventory/hosts.ini playbook_1_motd.yml
-```
+Перейдите в веб-консоль Yandex Cloud и убедитесь, что:
 
-#### Пример вывода выполнения
+- созданный балансировщик находится в статусе `Active`;
+- обе виртуальные машины в целевой группе находятся в состоянии `healthy`.
 
-```text
-PLAY [Download and extract archive] **
+Сделайте запрос на порт 80 внешнего IP-адреса балансировщика и убедитесь, что получаете ответ в виде стандартной страницы Nginx.
 
-TASK [Gathering Facts] **
-ok: [host1]
+В качестве результата пришлите:
 
-TASK [Create destination directory] **
-changed: [host1]
-
-TASK [Download archive] **
-changed: [host1]
-
-TASK [Extract archive] **
-changed: [host1]
-
-PLAY RECAP **
-host1                      : ok=4    changed=3    unreachable=0    failed=0
-```
-
-```text
-PLAY [Install and enable tuned] **
-
-TASK [Gathering Facts] **
-ok: [host1]
-
-TASK [Install tuned] **
-changed: [host1]
-
-TASK [Enable and start tuned] **
-changed: [host1]
-
-PLAY RECAP **
-host1                      : ok=3    changed=2    unreachable=0    failed=0
-```
-
-```text
-PLAY [Configure motd] **
-
-TASK [Gathering Facts] **
-ok: [host1]
-
-TASK [Set motd] **
-changed: [host1]
-
-PLAY RECAP **
-host1                      : ok=2    changed=1    unreachable=0    failed=0
-```
-
-При необходимости можно приложить скриншоты выполнения playbook.
+1. Terraform Playbook.
+2. Скриншот статуса балансировщика и целевой группы.
+3. Скриншот страницы, которая открылась при запросе IP-адреса балансировщика.
 
 ---
 
-### Задание 2
+# Выполнение домашнего задания
 
-Плейбук из задания 1 был модифицирован. В качестве приветствия используются hostname, IP-адрес управляемого хоста и пожелание хорошего дня системному администратору.
+## Задание 1
 
-#### Модифицированный playbook
+### 1. Создание инфраструктуры с помощью Terraform
 
-```yaml
-***
-- name: Configure motd with host facts
-  hosts: all
-  become: true
-  gather_facts: true
+В Yandex Cloud с помощью Terraform создана следующая инфраструктура:
 
-  tasks:
-    - name: Set motd from facts
-      ansible.builtin.copy:
-        dest: /etc/motd
-        mode: '0644'
-        content: |
-          Hostname: {{ ansible_hostname }}
-          IP address: {{ ansible_default_ipv4.address }}
-          Good day, system administrator!
+- облачная сеть `hw-nlb-network`;
+- подсеть `hw-nlb-subnet` с диапазоном адресов `10.20.0.0/24`;
+- группа безопасности `hw-nlb-web-sg`;
+- виртуальные машины `hw-nlb-web-a` и `hw-nlb-web-b`;
+- целевая группа `hw-nlb-target-group`;
+- внешний сетевой балансировщик `hw-nlb-balancer`.
+
+Для создания двух виртуальных машин использован метааргумент `count = 2`.
+
+Фрагмент конфигурации:
+
+```hcl
+locals {
+  web_names = ["web-a", "web-b"]
+}
+
+resource "yandex_compute_instance" "web" {
+  count = 2
+
+  name        = "hw-nlb-${local.web_names[count.index]}"
+  hostname    = local.web_names[count.index]
+  zone        = "ru-central1-a"
+  platform_id = "standard-v3"
+
+  # Полное описание ресурса находится в main.tf.
+}
 ```
 
-#### Команда запуска
+Обе ВМ имеют одинаковые параметры и отличаются именами, hostname и IP-адресами.
+
+### 2. Файлы Terraform-конфигурации
+
+Полная конфигурация размещена в файлах:
+
+| Файл | Назначение |
+|---|---|
+| [providers.tf](providers.tf) | Настройки Terraform и провайдера Yandex Cloud |
+| [main.tf](main.tf) | Сеть, подсеть, группа безопасности, ВМ, целевая группа и балансировщик |
+| [outputs.tf](outputs.tf) | Вывод IP-адресов |
+| [cloud-init.yaml](cloud-init.yaml) | Создание пользователя и установка Nginx |
+| [terraform.tfvars.example](terraform.tfvars.example) | Пример переменной для ограничения SSH-доступа |
+| [.terraform.lock.hcl](.terraform.lock.hcl) | Зафиксированная версия провайдера |
+| [.gitignore](.gitignore) | Исключения для локальных файлов и состояния Terraform |
+
+### 3. Параметры виртуальных машин
+
+| Параметр | Значение |
+|---|---|
+| Зона доступности | `ru-central1-a` |
+| Операционная система | Ubuntu 22.04 LTS |
+| Платформа | `standard-v3` |
+| Количество vCPU | 2 |
+| Гарантированная доля vCPU | 20% |
+| Оперативная память | 2 ГБ |
+| Загрузочный диск | HDD, 10 ГБ |
+
+Адреса созданных ресурсов:
+
+| Ресурс | Внутренний IP | Внешний IP |
+|---|---|---|
+| `hw-nlb-web-a` | `10.20.0.10` | `46.21.244.97` |
+| `hw-nlb-web-b` | `10.20.0.25` | `51.250.12.153` |
+| `hw-nlb-balancer` | — | `51.250.1.235` |
+
+### 4. Порядок развёртывания
+
+Использованы:
+
+- Terraform `1.9.5`;
+- провайдер `yandex-cloud/yandex` версии `0.244.0`;
+- Yandex Cloud CLI `1.44.0`.
+
+Для повторного запуска необходимо:
+
+1. Установить Terraform и Yandex Cloud CLI.
+2. Настроить аутентификацию в Yandex Cloud CLI.
+3. Указать собственные `cloud_id` и `folder_id` в `providers.tf`.
+4. Подготовить пару SSH-ключей `~/.ssh/id_ed25519` и `~/.ssh/id_ed25519.pub`.
+5. Создать `terraform.tfvars` по образцу `terraform.tfvars.example`, указав свой внешний IPv4-адрес с маской `/32`.
+
+Передача IAM-токена в переменную окружения:
 
 ```bash
-ansible-playbook -i inventory/hosts.ini playbook_2_motd_facts.yml
+export YC_TOKEN="$(yc iam create-token)"
 ```
 
-#### Пример вывода выполнения
-
-```text
-PLAY [Configure motd with host facts] **
-
-TASK [Gathering Facts] **
-ok: [host1]
-
-TASK [Set motd from facts] **
-changed: [host1]
-
-PLAY RECAP **
-host1                      : ok=2    changed=1    unreachable=0    failed=0
-```
-
-При входе на управляемый хост отображается приветствие с hostname, IP-адресом и пожеланием хорошего дня системному администратору.
-
----
-
-### Задание 3
-
-Был создан playbook, подключающий собственную роль `apache_hostinfo`. При выполнении задания не использовались модули `shell` и `command`. Роль устанавливает Apache, формирует `index.html` на основе Ansible facts через шаблон Jinja2, запускает сервис, добавляет его в автозагрузку, при необходимости открывает порт 80 и проверяет доступность сайта модулем `uri`.
-
-#### Основной playbook
-
-```yaml
-***
-- name: Deploy Apache with host info page
-  hosts: all
-  become: true
-  gather_facts: true
-
-  roles:
-    - apache_hostinfo
-```
-
-#### Структура роли
-
-```text
-roles/
-└── apache_hostinfo/
-    ├── defaults/
-    │   └── main.yml
-    ├── handlers/
-    │   └── main.yml
-    ├── tasks/
-    │   └── main.yml
-    ├── templates/
-    │   └── index.html.j2
-    └── vars/
-        └── main.yml
-```
-
-#### vars/main.yml
-
-```yaml
-***
-apache_package: "{{ 'apache2' if ansible_facts.os_family == 'Debian' else 'httpd' }}"
-apache_service: "{{ 'apache2' if ansible_facts.os_family == 'Debian' else 'httpd' }}"
-apache_docroot: "/var/www/html"
-```
-
-#### tasks/main.yml
-
-```yaml
-***
-- name: Install Apache
-  ansible.builtin.package:
-    name: "{{ apache_package }}"
-    state: present
-
-- name: Ensure Apache is started and enabled
-  ansible.builtin.service:
-    name: "{{ apache_service }}"
-    state: started
-    enabled: true
-
-- name: Open port 80 in firewalld
-  ansible.posix.firewalld:
-    port: 80/tcp
-    permanent: true
-    state: enabled
-    immediate: true
-  when: ansible_facts.os_family == "RedHat"
-
-- name: Deploy index.html
-  ansible.builtin.template:
-    src: index.html.j2
-    dest: "{{ apache_docroot }}/index.html"
-    mode: '0644'
-  notify: Restart Apache
-
-- name: Check website availability
-  ansible.builtin.uri:
-    url: "http://127.0.0.1"
-    status_code: 200
-```
-
-#### handlers/main.yml
-
-```yaml
-***
-- name: Restart Apache
-  ansible.builtin.service:
-    name: "{{ apache_service }}"
-    state: restarted
-```
-
-#### templates/index.html.j2
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Host info</title>
-</head>
-<body>
-    <h1>Managed host information</h1>
-    <ul>
-        <li>Hostname: {{ ansible_hostname }}</li>
-        <li>IP address: {{ ansible_default_ipv4.address }}</li>
-        <li>CPU: {{ ansible_processor_vcpus | default(ansible_processor_nproc) }}</li>
-        <li>RAM: {{ ansible_memtotal_mb }} MB</li>
-        <li>First HDD: {{ (ansible_mounts | sort(attribute='mount')).size_total // 1024 // 1024 // 1024 }} GB</li>
-    </ul>
-</body>
-</html>
-```
-
-#### Команда запуска
+Проверка и применение конфигурации:
 
 ```bash
-ansible-playbook -i inventory/hosts.ini playbook_3_role_site.yml
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
 ```
 
-#### Пример вывода выполнения
+Результат проверки конфигурации:
 
 ```text
-PLAY [Deploy Apache with host info page] **
-
-TASK [Gathering Facts] **
-ok: [host1]
-
-TASK [apache_hostinfo : Install Apache] **
-changed: [host1]
-
-TASK [apache_hostinfo : Ensure Apache is started and enabled] **
-changed: [host1]
-
-TASK [apache_hostinfo : Open port 80 in firewalld] **
-skipping: [host1]
-
-TASK [apache_hostinfo : Deploy index.html] **
-changed: [host1]
-
-TASK [apache_hostinfo : Check website availability] **
-ok: [host1]
-
-RUNNING HANDLER [apache_hostinfo : Restart Apache] **
-changed: [host1]
-
-PLAY RECAP **
-host1                      : ok=5    changed=3    unreachable=0    failed=0    skipped=1
+Success! The configuration is valid.
 ```
 
-#### Архив роли
+План:
 
-В репозиторий также был добавлен архив роли, подготовленный для сдачи:
+```text
+Plan: 7 to add, 0 to change, 0 to destroy.
+```
+
+Результат развёртывания:
+
+```text
+Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
+```
+
+Выходные значения:
+
+```text
+load_balancer_ip = "51.250.1.235"
+web_servers = {
+  "hw-nlb-web-a" = {
+    "external_ip" = "46.21.244.97"
+    "internal_ip" = "10.20.0.10"
+  }
+  "hw-nlb-web-b" = {
+    "external_ip" = "51.250.12.153"
+    "internal_ip" = "10.20.0.25"
+  }
+}
+```
+
+### 5. Установка и запуск Nginx
+
+На обеих виртуальных машинах Nginx установлен автоматически через cloud-init.
+
+Файл `cloud-init.yaml` передаётся в метаданные ВМ через ключ `user-data`:
+
+```hcl
+metadata = {
+  user-data = templatefile("${path.module}/cloud-init.yaml", {
+    ssh_public_key = trimspace(file(pathexpand("~/.ssh/id_ed25519.pub")))
+  })
+}
+```
+
+Установка пакета и запуск службы:
+
+```yaml
+package_update: true
+
+packages:
+  - nginx
+
+runcmd:
+  - [systemctl, enable, --now, nginx]
+```
+
+Nginx запущен и добавлен в автозагрузку. Стандартная страница веб-сервера не изменялась.
+
+### 6. Создание целевой группы
+
+В целевую группу добавлены внутренние IP обеих ВМ.
+
+```hcl
+resource "yandex_lb_target_group" "web" {
+  name      = "hw-nlb-target-group"
+  region_id = "ru-central1"
+
+  dynamic "target" {
+    for_each = yandex_compute_instance.web
+
+    content {
+      subnet_id = yandex_vpc_subnet.main.id
+      address   = target.value.network_interface.ip_address
+    }
+  }
+}
+```
+
+### 7. Настройка сетевого балансировщика
+
+| Параметр | Значение |
+|---|---|
+| Имя | `hw-nlb-balancer` |
+| Тип | Внешний сетевой балансировщик |
+| Внешний IP | `51.250.1.235` |
+| Протокол обработчика | TCP |
+| Входящий порт | 80 |
+| Целевой порт | 80 |
+| Протокол проверки | HTTP |
+| Порт проверки | 80 |
+| Путь проверки | `/` |
+| Интервал проверки | 5 секунд |
+| Тайм-аут проверки | 2 секунды |
+| Порог успешных проверок | 2 |
+| Порог неуспешных проверок | 2 |
+
+HTTP-трафик поступает на порт 80 внешнего IP балансировщика и направляется на порт 80 виртуальных машин.
+
+### 8. Проверка состояния балансировщика и целевой группы
+
+В веб-консоли Yandex Cloud проверено:
+
+- балансировщик `hw-nlb-balancer` находится в состоянии `Active`;
+- ВМ `hw-nlb-web-a` находится в состоянии `Healthy`;
+- ВМ `hw-nlb-web-b` находится в состоянии `Healthy`.
+
+Дополнительно выполнена проверка через CLI:
+
 ```bash
-tar -czf apache_hostinfo.tar.gz roles/apache_hostinfo
+yc load-balancer network-load-balancer target-states \
+  enp2eq099u0q5n68kfli \
+  --target-group-id=enp1tci16tp0qij81msm
 ```
 
-При необходимости можно приложить скриншоты открытия страницы Apache и вывода выполнения playbook.
+Результат:
 
----
+```text
++----------------------+------------+---------+
+|      SUBNET ID       |  ADDRESS   | STATUS  |
++----------------------+------------+---------+
+| e9b4vv0jhmh8ea4icvq4 | 10.20.0.10 | HEALTHY |
+| e9b4vv0jhmh8ea4icvq4 | 10.20.0.25 | HEALTHY |
++----------------------+------------+---------+
+```
 
-### Задание 4
+Скриншот проверки состояния:
 
-Задание 4 в рамках данной работы не выполнялось, так как в предоставленном описании были требования только для заданий 1–3.
+![Статус балансировщика и целевой группы](img/cloud-fault-tolerance/balancer-healthy.png)
+
+### 9. Проверка HTTP-доступа
+
+Выполнен запрос к порту 80 внешнего IP балансировщика:
+
+```bash
+curl -I --connect-timeout 10 --max-time 15 http://51.250.1.235
+```
+
+Получен ответ:
+
+```text
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Sun, 08 Nov 2026 16:21:26 GMT
+Content-Type: text/html
+Content-Length: 612
+Last-Modified: Sun, 08 Nov 2026 16:21:13 GMT
+Connection: keep-alive
+ETag: "6af0a179-264"
+Accept-Ranges: bytes
+```
+
+При открытии `http://51.250.1.235` в браузере отображается стандартная страница `Welcome to nginx!`.
+
+![Страница Nginx по внешнему IP балансировщика](img/cloud-fault-tolerance/nginx.png)
+
+### Результат задания 1
+
+Выполнены все требования обязательного задания:
+
+1. Созданы две одинаковые по вычислительным параметрам ВМ с использованием `count`.
+2. Обе ВМ добавлены в целевую группу.
+3. Создан внешний сетевой балансировщик с портами `80 → 80`.
+4. Настроена HTTP-проверка на порту 80.
+5. На обеих ВМ автоматически установлен Nginx.
+6. Балансировщик находится в состоянии `Active`, обе цели — `Healthy`.
+7. По внешнему IP балансировщика открывается стандартная страница Nginx.
+

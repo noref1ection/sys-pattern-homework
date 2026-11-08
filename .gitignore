@@ -1,0 +1,12 @@
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+crash.log
+
+# Private SSH keys
+id_ed25519
+id_rsa
